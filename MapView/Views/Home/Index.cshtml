@@ -1,0 +1,126 @@
+﻿<div class="container">
+    <div class="row">
+        <div class="col-md-12 col-xs-12 col-lg-12">
+            <h3>A real-time Map</h3>
+            <div id="map">
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-beta.3/js/bootstrap.min.js"></script>
+<script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyABs8PWQ7VdtZEPgfN7sq2pTDKPGhKz2og&callback="></script>
+<script>
+
+    var geocoder;
+
+      var latitude = 37.778464;
+    var longitude = -122.419771;
+
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(successFunction, errorFunction);
+} 
+//Get the latitude and the longitude;
+    function successFunction(position) {
+    // latitude = position.coords.latitude;
+    // longitude = position.coords.longitude;
+    // initMap();
+
+      $.ajax({
+                type: "GET",
+                url: "Home/Getfoodtruck?lat=37.778464&lng=-122.419771",
+                contentType: "application/json; charset=utf-8",
+         
+                success: function(data, status) {
+                initMap(data);
+                //console.log(data);
+                }
+            });
+    
+        //codeLatLng(lat, lng)
+   }
+
+    function successFunc(data, status) {     
+               // alert(data);
+    
+            }
+    function errorFunction(){
+       // alert("Geocoder failed");
+    }
+
+    
+    let lineCoordinates = []
+
+  
+
+    let map = false;
+    let marker = false;
+
+
+    function initMap(data) {
+    
+        let lagos = {lat: latitude, lng: longitude};
+    
+        map = new google.maps.Map(document.getElementById('map'), {
+          zoom: 14,
+          center: lagos
+     
+        });
+    
+        var bounds = new google.maps.LatLngBounds();
+        var infowindow = new google.maps.InfoWindow();
+    
+      for( i = 0; i < data.length; i++ ) {
+        var position = new google.maps.LatLng(data[i].lat, data[i].lng);
+        bounds.extend(position);
+        marker = new google.maps.Marker({
+            position: position,
+            map: map,
+            tittle: data[i].title
+        });
+    
+         google.maps.event.addListener(marker, 'click', (function(marker, i) {
+        return function() {
+          infowindow.setContent(data[i].title);
+          infowindow.open(map, marker);
+        }
+      })(marker, i));
+
+    
+        lineCoordinates.push(marker.getPosition())
+    }
+   }
+
+    const updateMap = function(data) {
+
+        latitude = (data.latitude * 1);
+        longitude = (data.longitude * 1);
+
+        map.setCenter({
+            lat: latitude,
+            lng: longitude,
+            alt: 0
+        });
+
+        marker.setPosition({
+            lat: latitude,
+            lng: longitude,
+            alt: 0
+        });
+
+        lineCoordinates.push(marker.getPosition())
+
+        let lineCoordinatesPath = new google.maps.Polyline({
+          path: lineCoordinates,
+          geodesic: true,
+          map: map,
+          strokeColor: '#FF0000',
+          strokeOpacity: 1.0,
+          strokeWeight: 2
+        });
+
+    }
+
+</script>    
